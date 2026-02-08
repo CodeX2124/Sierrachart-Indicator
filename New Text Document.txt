@@ -1,0 +1,251 @@
+#include "sierrachart.h"
+
+SCDLLName("Zone Colored Candles")
+
+// Inputs
+SCSFExport scsf_ZoneColoredCandles(SCStudyInterfaceRef sc)
+{
+	SCInputRef Input_Length = sc.Input[0];
+    SCInputRef Input_Smoothing = sc.Input[1];
+
+    SCInputRef Input_OB = sc.Input[2];
+    SCInputRef Input_OBExtreme = sc.Input[3];
+    SCInputRef Input_OS = sc.Input[4];
+    SCInputRef Input_OSExtreme = sc.Input[5];
+	SCInputRef Input_Colorextra_extreme_sell = sc.Input[6];
+	SCInputRef Input_Colorextra_extreme_buy = sc.Input[7];
+	SCInputRef Input_Colorsea_zone_upbar = sc.Input[8];
+	SCInputRef Input_Colorsea_zone_downbar = sc.Input[9];
+	SCInputRef Input_Colorfrontier_buy_sweep = sc.Input[10];
+	SCInputRef Input_Colorfrontier_sell_sweep = sc.Input[11];
+	SCInputRef Input_Colorextreme_sell_1 = sc.Input[12];
+	SCInputRef Input_Colorextreme_sell_2 = sc.Input[13];
+	SCInputRef Input_Colorextreme_sell_3 = sc.Input[14];
+	SCInputRef Input_Colorextreme_sell_4 = sc.Input[15];
+	SCInputRef Input_Colorfrontier_sell = sc.Input[16];
+	SCInputRef Input_Colorextreme_buy_1 = sc.Input[17];
+	SCInputRef Input_Colorextreme_buy_2 = sc.Input[18];
+	SCInputRef Input_Colorextreme_buy_3 = sc.Input[19];
+	SCInputRef Input_Colorextreme_buy_4 = sc.Input[20];
+	SCInputRef Input_Colorfrontier_buy = sc.Input[21];
+    if (sc.SetDefaults) {
+        sc.GraphName = "Zone Colored Candles";
+        sc.StudyDescription = "Zone Colored Candles similar to the TradingView indicator";
+				
+        Input_Length.Name = "Length";
+        Input_Length.SetInt(14);
+        Input_Length.SetIntLimits(1, INT_MAX);
+
+        Input_Smoothing.Name = "Open Smoothing";
+        Input_Smoothing.SetInt(1);
+        Input_Smoothing.SetIntLimits(1, 100);
+
+        Input_OB.Name = "OB";
+        Input_OB.SetInt(20);
+        Input_OB.SetIntLimits(1, 50);
+
+        Input_OBExtreme.Name = "OB Extreme";
+        Input_OBExtreme.SetInt(30);
+        Input_OBExtreme.SetIntLimits(1, 50);
+
+        Input_OS.Name = "OS";
+        Input_OS.SetInt(-20);
+        Input_OS.SetIntLimits(-50, -1);
+
+        Input_OSExtreme.Name = "OS Extreme";
+        Input_OSExtreme.SetInt(-30);
+        Input_OSExtreme.SetIntLimits(-50, -1);
+
+		Input_Colorextra_extreme_sell.Name = "ExtremeSell Color";
+		Input_Colorextra_extreme_sell.SetColor(RGB(0, 30, 255));
+		
+		Input_Colorextra_extreme_buy.Name = "extra_extreme_buy";
+		Input_Colorextra_extreme_buy.SetColor(RGB(255, 0, 60));
+		
+		Input_Colorsea_zone_upbar.Name = "sea_zone_upbar";
+		Input_Colorsea_zone_upbar.SetColor(RGB(0, 224,60));
+		
+		Input_Colorsea_zone_downbar.Name = "sea_zone_downbar";
+		Input_Colorsea_zone_downbar.SetColor(RGB(224, 26, 0));
+		
+		Input_Colorfrontier_buy_sweep.Name = "frontier_buy_sweep";
+		Input_Colorfrontier_buy_sweep.SetColor(RGB(0, 0, 0));
+		
+		Input_Colorfrontier_sell_sweep.Name = "frontier_sell_sweep";
+		Input_Colorfrontier_sell_sweep.SetColor(RGB(0, 0, 0));
+		
+		Input_Colorextreme_sell_1.Name = "extreme_sell_1";
+		Input_Colorextreme_sell_1.SetColor(RGB(214, 0, 51));
+		
+		Input_Colorextreme_sell_2.Name = "extreme_sell_2";
+		Input_Colorextreme_sell_2.SetColor(RGB(255, 165, 0));
+		
+		Input_Colorextreme_sell_3.Name = "extreme_sell_3";
+		Input_Colorextreme_sell_3.SetColor(RGB(255, 255, 0));
+		
+		Input_Colorextreme_sell_4.Name = "extreme_sell_4";
+		Input_Colorextreme_sell_4.SetColor(RGB(0, 0, 0));
+		
+		Input_Colorextreme_buy_1.Name = "extreme_buy_1";
+		Input_Colorextreme_buy_1.SetColor(RGB(255, 0, 255));
+		
+		Input_Colorextreme_buy_2.Name = "extreme_buy_2";
+		Input_Colorextreme_buy_2.SetColor(RGB(128, 0, 128));
+		
+		Input_Colorextreme_buy_3.Name = "extreme_buy_3";
+		Input_Colorextreme_buy_3.SetColor(RGB(0, 255, 255));
+		
+		Input_Colorextreme_buy_4.Name = "extreme_buy_4";
+		Input_Colorextreme_buy_4.SetColor(RGB(0, 0, 0));
+		
+		Input_Colorfrontier_buy.Name = "frontier_buy";
+		Input_Colorfrontier_buy.SetColor(RGB(0, 255, 0));
+				
+		
+        sc.AutoLoop = 1;
+		sc.GraphRegion = 1;		
+        return;
+    }
+
+    int length = Input_Length.GetInt();
+    int smoothing = Input_Smoothing.GetInt();
+    int upper = Input_OB.GetInt();
+    int upperExtreme = Input_OBExtreme.GetInt();
+    int lower = Input_OS.GetInt();
+	int lowerExtreme = Input_OSExtreme.GetInt();
+		
+	// Calculate Heikin-Ashi values
+    SCFloatArrayRef HA_Open = sc.Subgraph[0]; // Heikin-Ashi Close
+    SCFloatArrayRef HA_High = sc.Subgraph[1];  // Heikin-Ashi Open
+    SCFloatArrayRef HA_Low = sc.Subgraph[2];  // Heikin-Ashi High
+    SCFloatArrayRef HA_Close = sc.Subgraph[3];;   // Heikin-Ashi Low
+
+    // Get the current index
+    int index = index;
+
+    // Calculate Heikin-Ashi values
+    if (index == 0) // First bar
+    {
+        HA_Open[index] = sc.BaseData[SC_OPEN][index];
+        HA_Close[index] = sc.BaseData[SC_CLOSE][index];
+    }
+    else
+    {
+        HA_Open[index] = (HA_Open[index - 1] + HA_Close[index - 1]) / 2.0f;
+        HA_Close[index] = (sc.BaseData[SC_OPEN][index] + sc.BaseData[SC_HIGH][index] + sc.BaseData[SC_LOW][index] + sc.BaseData[SC_CLOSE][index]) / 4.0f;
+    }
+
+    // Calculate High and Low for Heikin-Ashi
+    HA_High[index] = max(sc.BaseData[SC_HIGH][index], max(HA_Open[index], HA_Close[index]));
+    HA_Low[index] = min(sc.BaseData[SC_LOW][index], min(HA_Open[index], HA_Close[index]));
+		
+	SCSubgraphRef rsi = sc.Subgraph[4];
+	float openRSI = 0.0f;
+	float highRSI = 0.0f;
+	float lowRSI = 0.0f;
+	float closeRSI = 0.0f;
+	
+	sc.RSI(HA_Close, rsi, index, MOVAVGTYPE_SIMPLE, length);
+	
+	closeRSI = rsi[index] - 50.0f;
+	openRSI = (index > 0) ? rsi[index - 1]  : closeRSI;
+	
+	sc.RSI(HA_High, rsi, MOVAVGTYPE_SIMPLE, length);
+	float highRSIRaw = rsi[index] - 50.0f;
+	
+	sc.RSI(HA_Low, rsi, MOVAVGTYPE_SIMPLE, length);
+	
+    float lowRSIRaw = rsi[index] - 50.0f;
+	
+	highRSI = max(highRSIRaw, lowRSIRaw);
+	lowRSI = min(highRSIRaw, lowRSIRaw);
+	
+	//Calculate open, high, low, close values
+	SCFloatArrayRef close = sc.Subgraph[5].Data;
+	SCFloatArrayRef open = sc.Subgraph[6].Data;
+	SCFloatArrayRef high = sc.Subgraph[7].Data;
+	SCFloatArrayRef low = sc.Subgraph[8].Data;
+	
+	static float smoothedOpen = 0.0f;
+	
+	close[index] = (openRSI + highRSI + lowRSI + closeRSI) / 4.0f;
+	open[index] = std::isnan(open[index - smoothing]) ? (openRSI + closeRSI) / 2.0f : (smoothedOpen * smoothing + close[index - 1]) / (smoothing + 1); 
+	high[index] = max(highRSI, max(open[index], close[index]));
+	low[index] = min(lowRSI, min(open[index], close[index]));
+	
+	smoothedOpen = open[index];
+	// Define colors
+    //int extra_extreme_buy_color = RGB(255, 0, 60);   // #ff003c
+    //int extra_extreme_sell_color = RGB(0, 30, 255);   // #001eff
+    //int sea_zone_upbar_color = RGB(0, 224, 64);       // #00e040
+    //int sea_zone_downbar_color = RGB(224, 26, 0);     // #e01a00
+   // int frontier_buy_sweep_color = RGB(0, 0, 0);       // #000000
+    //int frontier_sell_sweep_color = RGB(0, 0, 0);      // #000000
+	//int extreme_sell_1_color = RGB(214, 0, 51);
+	
+	// Define zones
+    bool extra_extreme_sell = close[index] > 30;
+    bool extreme_sell_1 = close[index] > 27.5f && close[index] <= 30;
+    bool extreme_sell_2 = close[index] > 25 && close[index] <= 27.5f;
+    bool extreme_sell_3 = close[index] > 22.5f && close[index] <= 25;
+    bool extreme_sell_4 = close[index] > 20 && close[index] <= 22.5f;
+    bool frontier_sell = close[index] < upperExtreme && close[index] > upper;
+    bool sea_zone = close[index] < upper && close[index] > lower;
+    bool frontier_buy = close[index] < lower && close[index] > lowerExtreme;
+    bool extreme_buy_4 = close[index] < -20 && close[index] >= -22.5f;
+    bool extreme_buy_3 = close[index] < -22.5f && close[index] >= -25;
+    bool extreme_buy_2 = close[index] < -25 && close[index] >= -27.5f;
+    bool extreme_buy_1 = close[index] < -27.5f && close[index] >= -30;
+    bool extra_extreme_buy = close[index] < -30;
+    bool fr_buy_sweep = (sea_zone && high[index] > upper);
+    bool fr_sel_sweep = (sea_zone && low[index] < lower);
+	
+	// Determine candle color
+    int candle_color;
+
+    if (extra_extreme_sell)
+        candle_color = Input_Colorextra_extreme_sell.GetInt();
+    else if (extreme_sell_1)
+        candle_color = Input_Colorextreme_sell_1.GetInt();
+    else if (extreme_sell_2)
+        candle_color = Input_Colorextreme_sell_2.GetInt();
+    else if (extreme_sell_3)
+        candle_color = Input_Colorextreme_sell_3.GetInt();
+    else if (extreme_sell_4)
+        candle_color = Input_Colorextreme_sell_4.GetInt();
+    else if (frontier_sell)
+        candle_color = Input_Colorfrontier_sell.GetInt();
+    else if (extra_extreme_buy)
+        candle_color = Input_Colorextra_extreme_buy.GetInt();
+    else if (extreme_buy_1)
+        candle_color = Input_Colorextreme_buy_1.GetInt();
+    else if (extreme_buy_2)
+        candle_color = Input_Colorextreme_buy_2.GetInt();
+    else if (extreme_buy_3)
+        candle_color = Input_Colorextreme_buy_3.GetInt();
+    else if (extreme_buy_4)
+        candle_color = Input_Colorextreme_buy_4.GetInt();
+    else if (frontier_buy)
+        candle_color = Input_Colorfrontier_buy.GetInt();
+    else if (fr_buy_sweep)
+        candle_color = Input_Colorfrontier_buy_sweep.GetInt();
+    else if (fr_sel_sweep)
+        candle_color = Input_Colorfrontier_sell_sweep.GetInt();
+    else
+        candle_color = (sc.BaseData[SC_CLOSE][index] > sc.BaseData[SC_OPEN][index]) ? Input_Colorsea_zone_upbar.GetInt() : Input_Colorsea_zone_downbar.GetInt();
+	
+	// Define line properties
+    COLORREF upperExtremeColor = RGB(0, 0, 255); // Blue color
+    COLORREF upperColor = RGB(0, 0, 255);        // Blue color
+    COLORREF lowerColor = RGB(255, 0, 0);        // Red color
+    COLORREF lowerExtremeColor = RGB(255, 0, 0); // Red color
+
+    unsigned short lineWidth = 1; // Line width
+    unsigned short lineStyle = LINESTYLE_SOLID; // Solid line style
+    int drawValueLabel = 1; // Draw value label
+    int drawNameLabel = 1; // Do not draw name label
+
+	sc.Subgraph[3].DrawStyle = DRAWSTYLE_COLOR_BAR;	
+    sc.Subgraph[3].SecondaryColorUsed = 1;
+	sc.Subgraph[3].DataColor[sc.Index] = candle_color;
+}
